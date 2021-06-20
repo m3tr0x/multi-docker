@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t m3tr0x/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true m3tr0x/react-test npm test
+
+after_sucess:
+  - docker build -t m3tr0x/multi-client ./client
+  - docker build -t m3tr0x/multi-nginx ./nginx
+  - docker build -t m3tr0x/multi-server ./server
+  - docker build -t m3tr0x/multi-worker ./worker 
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push m3tr0x/multi-client
+  - docker push m3tr0x/multi-server
+  - docker push m3tr0x/multi-nginx
+  - docker push m3tr0x/multi-worker
